@@ -45,9 +45,10 @@ import org.w3c.dom.events.EventTarget;
  */
 public class BrowserView {
     // constants
-    public static final Dimension DEFAULT_SIZE = new Dimension(800, 600);
+    public static final Dimension DEFAULT_SIZE = new Dimension(1000, 600);
     public static final String DEFAULT_RESOURCE_PACKAGE = "resources/";
-    public static final String STYLESHEET = "default.css";
+//    public static final String STYLESHEET = "default.css";
+    public static final String STYLESHEET = "recitation.css";
     public static final String BLANK = " ";
 
     // scene, needed to report back to Application
@@ -61,7 +62,9 @@ public class BrowserView {
     private Button myBackButton;
     private Button myNextButton;
     private Button myHomeButton;
+
     // favorites
+    private Button myFavoriteButton;
     private ComboBox<String> myFavorites;
     // get strings from resource file
     private ResourceBundle myResources;
@@ -84,20 +87,20 @@ public class BrowserView {
         enableButtons();
         // create scene to hold UI
         myScene = new Scene(root, DEFAULT_SIZE.width, DEFAULT_SIZE.height);
-        //myScene.getStylesheets().add(DEFAULT_RESOURCE_PACKAGE + STYLESHEET);
+        myScene.getStylesheets().add(DEFAULT_RESOURCE_PACKAGE + STYLESHEET);
     }
 
     /**
      * Display given URL.
      */
     public void showPage (String url) {
-        URL valid = myModel.go(url);
-        if (url != null) {
-            update(valid);
-        }
-        else {
-            showError("Could not load " + url);
-        }
+    	try{
+    		URL valid = myModel.go(url);
+    		update(valid);
+    	}
+    	catch(BrowserException e) {
+    		showError(String.format("Could not load %s. Check your spelling", url));
+    	}
     }
 
     /**
@@ -210,6 +213,7 @@ public class BrowserView {
         result.getChildren().add(myNextButton);
         myHomeButton = makeButton("HomeCommand", event -> home());
         result.getChildren().add(myHomeButton);
+        
         // if user presses button or enter in text field, load/show the URL
         EventHandler<ActionEvent> showHandler = new ShowPage();
         result.getChildren().add(makeButton("GoCommand", showHandler));
@@ -225,6 +229,14 @@ public class BrowserView {
             myModel.setHome();
             enableButtons();
         }));
+        
+        //Add Recitation assignment:
+        myFavoriteButton = makeButton("AddFavoriteCommand", event -> addFavorite());
+        result.getChildren().add(myFavoriteButton);
+        myFavorites = new ComboBox<String>();
+        myFavorites.setPromptText(myResources.getString("FavoriteFirstItem"));
+        myFavorites.setOnAction(e -> showFavorite(myFavorites.getSelectionModel().getSelectedItem()));
+        result.getChildren().add(myFavorites);
         return result;
     }
 
